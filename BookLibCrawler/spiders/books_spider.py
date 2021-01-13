@@ -7,10 +7,15 @@ import requests
 import re
 import cssselect
 from lxml.html import etree
+import time
+import random
 
 class QuotesSpider(scrapy.Spider):
     name = "books"
-    # RF = random.random()
+
+    data = pd.read_csv('C:/Users/30438/Desktop/data3.csv')
+    isbns = data['isbn'].tolist()
+    count = 24
 
     def start_requests(self):
         yield scrapy.Request('http://opac.nlc.cn/F', callback=self.parse)
@@ -18,17 +23,18 @@ class QuotesSpider(scrapy.Spider):
 
     def parse(self, response):
         
-        data = pd.read_csv('C:/Users/30438/Desktop/data3.csv')
-        isbns = data['isbn'].tolist()
+        response = requests.get('http://opac.nlc.cn/F')
 
-        for ISBN in isbns[0:2]:
-            response = requests.get('http://opac.nlc.cn/F')
-            html_obj = etree.HTML(response.text)
-            form_obj = html_obj.cssselect('form')[0]
-            search_prefix = form_obj.attrib.get('action')
+        time.sleep(random.randint(3,10))
 
-            search_page = search_prefix + '?func=find-b&find_code=ISB&request=' + ISBN + '&local_base=NLC01&filter_code_1=WLN&filter_request_1=&filter_code_2=WYR&filter_request_2=&filter_code_3=WYR&filter_request_3=&filter_code_4=WFM&filter_request_4=&filter_code_5=WSL&filter_request_5='
-            yield SeleniumRequest(url=search_page, callback=self.parse_detail)
+        html_obj = etree.HTML(response.text)
+        form_obj = html_obj.cssselect('form')[0]
+        search_prefix = form_obj.attrib.get('action')
+
+        ISBN = self.isbns[self.count]
+        self.count += 1
+        search_page = search_prefix + '?func=find-b&find_code=ISB&request=' + ISBN + '&local_base=NLC01&filter_code_1=WLN&filter_request_1=&filter_code_2=WYR&filter_request_2=&filter_code_3=WYR&filter_request_3=&filter_code_4=WFM&filter_request_4=&filter_code_5=WSL&filter_request_5='
+        yield SeleniumRequest(url=search_page, callback=self.parse_detail)
 
     def parse_detail(self, response):
         keys = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" id="bold" width="15%" valign="center" nowrap.*?>\s+(.*?)\s+</td>')
@@ -45,7 +51,11 @@ class QuotesSpider(scrapy.Spider):
                 pre_key = keys[i]
                 if '<a' in values[i]:
                     if keys[i]=='著者':
-                        result[keys[i]] = handle_author(values[i])
+                        author = handle_author(values[i])
+                        if author:
+                            result[keys[i]] = author
+                        else:
+                            result[keys[i]] = extras[index]
                     else:
                         result[keys[i]] = extras[index]
                     index+=1
@@ -56,7 +66,11 @@ class QuotesSpider(scrapy.Spider):
                     if isinstance(result[pre_key],list):
                         if '<a' in values[i]:
                             if pre_key=='著者':
-                                result[pre_key].append(handle_author(values[i]))
+                                author = handle_author(values[i])
+                                if author:
+                                    result[pre_key].append(author)
+                                else:
+                                    result[pre_key].append(extras[index])                                
                             else:
                                 result[pre_key].append(extras[index])
                             index+=1
@@ -68,27 +82,53 @@ class QuotesSpider(scrapy.Spider):
                         result[pre_key].append(pre_val)
                         if '<a' in values[i]:
                             if pre_key=='著者':
-                                result[pre_key].append(handle_author(values[i]))
+                                author = handle_author(values[i])
+                                if author:
+                                    result[pre_key].append(author)
+                                else:
+                                    result[pre_key].append(extras[index])
                             else:
                                 result[pre_key].append(extras[index])
                             index+=1
                         else:
                             result[pre_key].append(values[i])
 
-        jl = codecs.open('books.jl','a','utf-8')
-        jl.write(json.dumps(result,ensure_ascii=False))
-        jl.write('\n')
-        jl.close()
+        yield result
+
+        if self.count<1000:
+            response = requests.get('http://opac.nlc.cn/F')
+
+            time.sleep(random.randint(3,10))
+
+            html_obj = etree.HTML(response.text)
+            form_obj = html_obj.cssselect('form')[0]
+            search_prefix = form_obj.attrib.get('action')
+
+            ISBN = self.isbns[self.count]
+            self.count += 1
+
+            search_page = search_prefix + '?func=find-b&find_code=ISB&request=' + ISBN + '&local_base=NLC01&filter_code_1=WLN&filter_request_1=&filter_code_2=WYR&filter_request_2=&filter_code_3=WYR&filter_request_3=&filter_code_4=WFM&filter_request_4=&filter_code_5=WSL&filter_request_5='
+            yield SeleniumRequest(url=search_page, callback=self.parse_detail)
+
+        # jl = codecs.open('books.jl','a','utf-8')
+        # jl.write(json.dumps(result,ensure_ascii=False))
+        # jl.write('\n')
+        # jl.close()
 
 from selenium import webdriver
 def handle_author(str):
     url = re.search(r'%22(.*?)%22', str, re.M|re.I).group(1)
     url = url.replace('&amp;','&')
     response = requests.get(url)
+
+    time.sleep(random.randint(3,10))
+
     response.encoding = 'utf-8'
     html_obj = etree.HTML(response.text)
     table_objs = html_obj.cssselect('table')
-    if len(table_objs)==1:
+    if len(table_objs)==0:
+        return None
+    elif len(table_objs)==1:
         return table_objs[0].cssselect('td')[3].text.replace('\\n','').strip()
     else:
         table_obj = table_objs[1]
@@ -96,7 +136,11 @@ def handle_author(str):
         href = anchor.attrib.get('href')
         url = re.search(r'(.*?)\?', url, re.M|re.I).group(1) + '?func=accref&' + \
             re.search(r'acc_sequence=\d+', href, re.M|re.I).group(0)
+
         df = pd.read_html(url)[0]
+
+        time.sleep(random.randint(3,10))
+
         keyList = df[0].tolist()
         valList = df[1].tolist()
         author = {}
