@@ -9,15 +9,15 @@ import cssselect
 from lxml.html import etree
 import time
 import random
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support import expected_conditions as EC
 
 class BookLibSpider(scrapy.Spider):
     name = "all"
 
     data = pd.read_csv('C:/Users/30438/Desktop/origin.csv')
     isbns = data['isbn'].tolist()
-    count = 2011
+    count = 6592
     
     headers = {
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
@@ -31,7 +31,7 @@ class BookLibSpider(scrapy.Spider):
         
         response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
 
-        time.sleep(random.randint(2,4))
+        time.sleep(random.randint(1,3))
 
         html_obj = etree.HTML(response.text)
         form_obj = html_obj.cssselect('form')[0]
@@ -40,18 +40,20 @@ class BookLibSpider(scrapy.Spider):
         ISBN = self.isbns[self.count]
         self.count += 1
         search_page = search_prefix + '?func=find-b&find_code=ISB&request=' + ISBN + '&local_base=NLC01&filter_code_1=WLN&filter_request_1=&filter_code_2=WYR&filter_request_2=&filter_code_3=WYR&filter_request_3=&filter_code_4=WFM&filter_request_4=&filter_code_5=WSL&filter_request_5='
-        yield SeleniumRequest(url=search_page, callback=self.parse_detail, wait_time=5)
+        yield SeleniumRequest(url=search_page, callback=self.parse_detail)
 
     def parse_detail(self, response):
-        if response.selector.css('#format'):
+        if '数据库里没有这条请求记录' in response.selector.css('#feedbackbar').get():
+            isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
+            yield {'ISBN':isbn}
+        elif response.selector.css('#format'):
             isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
             yield {'ISBN':isbn}
         else:
             keys = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" id="bold" width="15%" valign="center" nowrap.*?>\s+(.*?)\s+</td>')
-            values = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" align="left">\s+(.*?)\s+</td>')
+            values = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" align="left">\s*(.*?)\s*</td>')
             extras = response.selector.css('#td tbody td a::text').getall()
             values = list(map(lambda str:str.replace("<br>",""), values))
-
             index=0
             result = {}
             pre_key = ''
@@ -107,7 +109,7 @@ class BookLibSpider(scrapy.Spider):
         if self.count<295073:
             response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
 
-            time.sleep(random.randint(2,4))
+            time.sleep(random.randint(1,3))
 
             html_obj = etree.HTML(response.text)
             form_obj = html_obj.cssselect('form')[0]
@@ -117,7 +119,7 @@ class BookLibSpider(scrapy.Spider):
             self.count += 1
 
             search_page = search_prefix + '?func=find-b&find_code=ISB&request=' + ISBN + '&local_base=NLC01&filter_code_1=WLN&filter_request_1=&filter_code_2=WYR&filter_request_2=&filter_code_3=WYR&filter_request_3=&filter_code_4=WFM&filter_request_4=&filter_code_5=WSL&filter_request_5='
-            yield SeleniumRequest(url=search_page, callback=self.parse_detail, wait_time=5)
+            yield SeleniumRequest(url=search_page, callback=self.parse_detail)
 
         # jl = codecs.open('books.jl','a','utf-8')
         # jl.write(json.dumps(result,ensure_ascii=False))
@@ -133,7 +135,7 @@ def handle_author(str):
     }
     response = requests.get(url, headers = headers)
 
-    time.sleep(random.randint(2,4))
+    time.sleep(random.randint(1,3))
 
     response.encoding = 'utf-8'
     html_obj = etree.HTML(response.text)
@@ -151,7 +153,7 @@ def handle_author(str):
 
         df = pd.read_html(url)[0]
 
-        time.sleep(random.randint(2,4))
+        time.sleep(random.randint(1,3))
 
         keyList = df[0].tolist()
         valList = df[1].tolist()
