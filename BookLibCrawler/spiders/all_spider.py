@@ -17,7 +17,7 @@ class BookLibSpider(scrapy.Spider):
 
     data = pd.read_csv('C:/Users/30438/Desktop/origin.csv')
     isbns = data['isbn'].tolist()
-    count = 6592
+    count = 7309
     
     headers = {
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
@@ -31,7 +31,7 @@ class BookLibSpider(scrapy.Spider):
         
         response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
 
-        time.sleep(random.randint(1,3))
+        time.sleep(random.randint(0,2))
 
         html_obj = etree.HTML(response.text)
         form_obj = html_obj.cssselect('form')[0]
@@ -43,13 +43,13 @@ class BookLibSpider(scrapy.Spider):
         yield SeleniumRequest(url=search_page, callback=self.parse_detail)
 
     def parse_detail(self, response):
-        if '数据库里没有这条请求记录' in response.selector.css('#feedbackbar').get():
-            isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
-            yield {'ISBN':isbn}
-        elif response.selector.css('#format'):
-            isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
-            yield {'ISBN':isbn}
-        else:
+        # if '数据库里没有这条请求记录' in response.selector.css('#feedbackbar').get():
+        #     isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
+        #     yield {'ISBN':isbn}
+        # elif response.selector.css('#format'):
+        #     isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
+        #     yield {'ISBN':isbn}
+        if  response.selector.css('#details2'):
             keys = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" id="bold" width="15%" valign="center" nowrap.*?>\s+(.*?)\s+</td>')
             values = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" align="left">\s*(.*?)\s*</td>')
             extras = response.selector.css('#td tbody td a::text').getall()
@@ -105,11 +105,15 @@ class BookLibSpider(scrapy.Spider):
                             else:
                                 result[pre_key].append(values[i])
             yield result
+        else:
+            isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
+            yield {'ISBN':isbn}
 
         if self.count<295073:
             response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
 
-            time.sleep(random.randint(1,3))
+            time.sleep(random.randint(0,2))
+            time.sleep(random.randint(0,2))
 
             html_obj = etree.HTML(response.text)
             form_obj = html_obj.cssselect('form')[0]
@@ -135,7 +139,7 @@ def handle_author(str):
     }
     response = requests.get(url, headers = headers)
 
-    time.sleep(random.randint(1,3))
+    time.sleep(random.randint(0,2))
 
     response.encoding = 'utf-8'
     html_obj = etree.HTML(response.text)
@@ -153,7 +157,7 @@ def handle_author(str):
 
         df = pd.read_html(url)[0]
 
-        time.sleep(random.randint(1,3))
+        time.sleep(random.randint(0,2))
 
         keyList = df[0].tolist()
         valList = df[1].tolist()
