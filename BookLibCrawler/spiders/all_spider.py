@@ -17,7 +17,7 @@ class BookLibSpider(scrapy.Spider):
 
     data = pd.read_csv('C:/Users/30438/Desktop/origin.csv')
     isbns = data['isbn'].tolist()
-    count = 30105
+    count = 31177
     
     headers = {
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
@@ -110,10 +110,8 @@ class BookLibSpider(scrapy.Spider):
             yield {'ISBN':isbn}
 
         if self.count<295073:
+            time.sleep(random.randint(0,2))
             response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
-
-            time.sleep(random.randint(0,2))
-            time.sleep(random.randint(0,2))
 
             html_obj = etree.HTML(response.text)
             form_obj = html_obj.cssselect('form')[0]
