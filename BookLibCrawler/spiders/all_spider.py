@@ -9,6 +9,7 @@ import cssselect
 from lxml.html import etree
 import time
 import random
+
 # from selenium.webdriver.common.by import By
 # from selenium.webdriver.support import expected_conditions as EC
 
@@ -17,7 +18,7 @@ class BookLibSpider(scrapy.Spider):
 
     data = pd.read_csv('C:/Users/30438/Desktop/origin.csv')
     isbns = data['isbn'].tolist()
-    count = 31177
+    count = 44830
     
     headers = {
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
@@ -28,10 +29,9 @@ class BookLibSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        
-        response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
 
         time.sleep(random.randint(0,2))
+        response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
 
         html_obj = etree.HTML(response.text)
         form_obj = html_obj.cssselect('form')[0]
@@ -43,12 +43,6 @@ class BookLibSpider(scrapy.Spider):
         yield SeleniumRequest(url=search_page, callback=self.parse_detail)
 
     def parse_detail(self, response):
-        # if '数据库里没有这条请求记录' in response.selector.css('#feedbackbar').get():
-        #     isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
-        #     yield {'ISBN':isbn}
-        # elif response.selector.css('#format'):
-        #     isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
-        #     yield {'ISBN':isbn}
         if  response.selector.css('#details2'):
             keys = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" id="bold" width="15%" valign="center" nowrap.*?>\s+(.*?)\s+</td>')
             values = response.selector.css('#td tbody td').re(r'<td style="background:#fff;" class="td1" align="left">\s*(.*?)\s*</td>')
@@ -105,13 +99,20 @@ class BookLibSpider(scrapy.Spider):
                             else:
                                 result[pre_key].append(values[i])
             yield result
+        # else: (重新处理count:6894-32504)
+        #     isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
+        #     yield {'ISBN':isbn}
+        elif '数据库里没有这条请求记录' in response.selector.css('#feedbackbar').get():
+            yield {}
         else:
             isbn = re.search(r'request=(.*?)&', response.url, re.M|re.I).group(1)
             yield {'ISBN':isbn}
 
         if self.count<295073:
+
             time.sleep(random.randint(0,2))
             response = requests.get('http://opac.nlc.cn/F', headers = self.headers)
+            time.sleep(random.randint(0,2))
 
             html_obj = etree.HTML(response.text)
             form_obj = html_obj.cssselect('form')[0]
@@ -135,9 +136,8 @@ def handle_author(str):
     headers = {
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
     }
-    response = requests.get(url, headers = headers)
-
     time.sleep(random.randint(0,2))
+    response = requests.get(url, headers = headers)
 
     response.encoding = 'utf-8'
     html_obj = etree.HTML(response.text)
@@ -153,9 +153,8 @@ def handle_author(str):
         url = re.search(r'(.*?)\?', url, re.M|re.I).group(1) + '?func=accref&' + \
             re.search(r'acc_sequence=\d+', href, re.M|re.I).group(0)
 
-        df = pd.read_html(url)[0]
-
         time.sleep(random.randint(0,2))
+        df = pd.read_html(url)[0]
 
         keyList = df[0].tolist()
         valList = df[1].tolist()
