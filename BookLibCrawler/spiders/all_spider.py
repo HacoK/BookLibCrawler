@@ -18,7 +18,7 @@ class BookLibSpider(scrapy.Spider):
 
     data = pd.read_csv('C:/Users/30438/Desktop/origin.csv')
     isbns = data['isbn'].tolist()
-    count = 44830
+    count = 48828
     
     headers = {
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
