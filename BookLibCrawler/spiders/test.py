@@ -1,15 +1,17 @@
 #1.启明星辰
 
-# #coding=utf-8
+# # coding=utf-8
 # import json
 # import requests
+# import pyexcel
 
 # with open('text.txt', 'r', encoding='UTF-8') as f:
 #     ret = json.load(f)
-#     file = open('data.txt', 'w', encoding='UTF-8')
+#     # file = open('data.txt', 'w', encoding='UTF-8')
+#     a_list_of_dictionaries = []
 #     for job in ret['data']['jobs']:
 #         url = "https://app.mokahr.com/api/outer/ats-jc-apply/website/job"
-#         data = json.dumps({"orgId": "venustech", "jobId": job['id'], "siteId": 3304})
+#         data = json.dumps({"orgId": "venustech", "jobId": job['id'], "siteId": 3305})
 #         headers = {
 #             'Content-Type':'application/json',
 #             'Host':'app.mokahr.com',
@@ -24,36 +26,61 @@
 #         commitment = data['commitment']
 #         job_type = data['zhineng']['name']
 #         locations = data['locations']
+#         address=''
+#         for loc in locations:
+#             address+=loc['address']
+#             address+=' '
 #         description = data['jobDescription'].replace('<strong>','').replace('</strong>','').replace('<p>','').replace('</p>','\n').replace('<br>','').replace('&nbsp;','')
 #         education = data.get('education',None)
-#         customFields = data.get('customFields',None)
-#         try:
-#             file.write(title+'\n')
-#             file.write(commitment+'\t'+job_type+'\n')
-#             for location in locations:
-#                 file.write(location['address']+'\t')
-#             file.write('\n')
-#             file.write('职位描述'+'\n')
-#             file.write(description)
-#             if education:
-#                 file.write('学历要求\t' + education)
-#             for field in customFields:
-#                 file.write('\n')
-#                 file.write(field['name']+'\t'+field['value'])
-#             file.write('\n')
-#             file.write('\n')
-#         except:
-#             pass
+#         number = data.get('number',None)
+#         dict_item = {'id':data['id'],
+#             '岗位分类':job_type,
+#             '招聘类型（社招/校招）':'社招',
+#             '学历':education,
+#             '工作经验':'',
+#             '公司名称':'启明星辰',
+#             '岗位名称':	title,
+#             '类型（全职/兼职/实习）':commitment,
+#             '工作地点':address,
+#             '招聘人数':number,
+#             '薪资':'',
+#             '工作描述':description
+#         }
+#         a_list_of_dictionaries.append(dict_item)
+    
+#     pyexcel.save_as(records=a_list_of_dictionaries, dest_file_name="your_file.xlsx")
+        # try:
+        #     file.write(title+'\n')
+        #     file.write(commitment+'\t'+job_type+'\n')
+        #     for location in locations:
+        #         file.write(location['address']+'\t')
+        #     file.write('\n')
+        #     file.write('职位描述'+'\n')
+        #     file.write(description)
+        #     if education:
+        #         file.write('学历要求\t' + education)
+        #     for field in customFields:
+        #         file.write('\n')
+        #         file.write(field['name']+'\t'+field['value'])
+        #     file.write('\n')
+        #     file.write('\n')
+        # except:
+        #     pass
         
-#     file.close()
+    # file.close()
 
 #2.天融信
 
 # import scrapy
+# import pyexcel
 
 # class TestSpider(scrapy.Spider):
 #     name = 'test'
-#     start_urls = ['https://topsec.zhiye.com/social?r=&p=1^6&c=&d=&k=#jlt']
+#     a_list_of_dictionaries = []
+
+#     def start_requests(self):
+#         for pageNum in range(1,19):
+#             yield scrapy.Request('https://topsec.zhiye.com/social/?p=1%5E-1&PageIndex='+str(pageNum), callback=self.parse)
 
 #     def parse(self, response):
 #         for link in response.css('td a::attr(href)'):
@@ -69,33 +96,50 @@
 #         body = list(map(lambda x:x.replace('\xa0',''),body))
 #         body = '\n'.join(body)
 
-#         result = title
-#         for i in range(len(header)):
-#             if i%2==0:
-#                 result+='\n'
-#                 result+=header[i]
-#             else:
-#                 result+='\t'
-#                 result+=header[i]
-#         result += '\n'
-#         result += body
-#         result += '\n'
-#         result += '\n'
-#         with open('data.txt','a',encoding='UTF-8') as f:
-#             f.write(result)
+        # result = title
+        # for i in range(len(header)):
+        #     if i%2==0:
+        #         result+='\n'
+        #         result+=header[i]
+        #     else:
+        #         result+='\t'
+        #         result+=header[i]
+        # result += '\n'
+        # result += body
+        # result += '\n'
+        # result += '\n'
+
+        # dict_item = {'id':'',
+        #     '岗位分类':'',
+        #     '招聘类型（社招/校招）':header[1],
+        #     '学历':'',
+        #     '工作经验':'',
+        #     '公司名称':'天融信',
+        #     '岗位名称':	title,
+        #     '类型（全职/兼职/实习）':header[3],
+        #     '工作地点':response.css('body > div.indexmain > div.content.mtf168 > div > div.wide.mr10 > div > div > div > div.xiangqingcontain > ul:nth-child(3) > li.nvcity::text').get().strip(),
+        #     '招聘人数':header[7],
+        #     '薪资':header[5],
+        #     '工作描述':body
+        # }
+        # print(dict_item)
+        # self.a_list_of_dictionaries.append(dict_item)
+        # pyexcel.save_as(records=self.a_list_of_dictionaries, dest_file_name="your_file.xlsx")
 
 #3.360
 
 # #coding=utf-8
 # import json
 # import requests
+# import pyexcel
 
 # with open('text.txt', 'r', encoding='UTF-8') as f:
 #     ret = json.load(f)
-#     file = open('data.txt', 'w', encoding='UTF-8')
+#     # file = open('data.txt', 'w', encoding='UTF-8')
+#     a_list_of_dictionaries = []
 #     for job in ret['data']:
-#         if job['type']!='其他':
-#             continue
+#         # if job['type']!='其他':
+#         #     continue
 #         url = "http://hr.360.cn/v2/index/getjobone"
 #         params = {
 #             "id": job['id']
@@ -118,34 +162,53 @@
 #         date = data['date']
 #         description = data['description']
 #         qualification = data['qualification']
-#         try:
-#             file.write(title+'\n')
-#             file.write('工作地点: '+area+'\t')
-#             file.write('工作经验: '+year+'\n')
-#             file.write('职位类型: '+position+'\t')
-#             file.write('发布时间: '+date+'\n')
-#             file.write('职位描述'+'\n')
-#             file.write(description+'\n')
-#             file.write('任职要求'+'\n')
-#             file.write(qualification+'\n')
-#             file.write('\n')
-#         except:
-#             pass
+#         dict_item = {'id':'',
+#             '岗位分类':position,
+#             '招聘类型（社招/校招）':'社招',
+#             '学历':'',
+#             '工作经验':year,
+#             '公司名称':'360',
+#             '岗位名称':	title,
+#             '类型（全职/兼职/实习）':'全职',
+#             '工作地点':area,
+#             '招聘人数':'',
+#             '薪资':'',
+#             '职位描述':description,
+#             '任职要求':qualification
+#         }
+#         a_list_of_dictionaries.append(dict_item)
+    
+#     pyexcel.save_as(records=a_list_of_dictionaries, dest_file_name="your_file.xlsx")
+    #     try:
+    #         file.write(title+'\n')
+    #         file.write('工作地点: '+area+'\t')
+    #         file.write('工作经验: '+year+'\n')
+    #         file.write('职位类型: '+position+'\t')
+    #         file.write('发布时间: '+date+'\n')
+    #         file.write('职位描述'+'\n')
+    #         file.write(description+'\n')
+    #         file.write('任职要求'+'\n')
+    #         file.write(qualification+'\n')
+    #         file.write('\n')
+    #     except:
+    #         pass
         
-#     file.close()
+    # file.close()
 
 #4.奇安信
 
 # #coding=utf-8
 # import json
 # import requests
+# import pyexcel
 
 # with open('text.txt', 'r', encoding='UTF-8') as f:
 #     ret = json.load(f)
-#     file = open('data.txt', 'w', encoding='UTF-8')
+#     # file = open('data.txt', 'w', encoding='UTF-8')
+#     a_list_of_dictionaries = []
 #     for job in ret['data']['details']:
-#         if job['PostType']!='研发':
-#             continue
+#         # if job['PostType']!='研发':
+#         #     continue
 #         url = "http://www.hotjob.cn/wt/qianxin/web/mode400/position/detail"
 #         params = {
 #             "postId": job['PostId'],
@@ -169,24 +232,41 @@
 #         ReleaseTime = data['ReleaseTime']
 #         serviceCondition = data['serviceCondition'].replace('<br>','')
 #         workConcet = data['workConcet'].replace('<br>','')
-#         try:
-#             file.write(name+'\n')
-#             file.write('工作地点: '+workPlace+'\t')
-#             file.write('所属机构: '+OrgName+'\t')
-#             file.write('薪资: '+Salary+'\n')
-#             file.write('职位类别: '+PostType+'\t')
-#             file.write('招聘人数: '+RecruitNumber+'\t')
-#             file.write('发布时间: '+ReleaseTime+'\n')
-#             file.write('招聘类型：社会招聘'+'\n')
-#             file.write('职位描述'+'\n')
-#             file.write(serviceCondition+'\n')
-#             file.write('任职要求'+'\n')
-#             file.write(workConcet+'\n')
-#             file.write('\n')
-#         except:
-#             pass
+#         dict_item = {'id':'',
+#             '岗位分类':job['PostType'],
+#             '招聘类型（社招/校招）':'社招',
+#             '学历':'',
+#             '工作经验':'',
+#             '公司名称':'奇安信',
+#             '岗位名称':	name,
+#             '类型（全职/兼职/实习）':'全职',
+#             '工作地点':workPlace,
+#             '招聘人数':RecruitNumber,
+#             '薪资':Salary,
+#             '职位描述':serviceCondition,
+#             '任职要求':workConcet
+#         }
+#         a_list_of_dictionaries.append(dict_item)
+    
+#     pyexcel.save_as(records=a_list_of_dictionaries, dest_file_name="your_file.xlsx")
+    #     try:
+    #         file.write(name+'\n')
+    #         file.write('工作地点: '+workPlace+'\t')
+    #         file.write('所属机构: '+OrgName+'\t')
+    #         file.write('薪资: '+Salary+'\n')
+    #         file.write('职位类别: '+PostType+'\t')
+    #         file.write('招聘人数: '+RecruitNumber+'\t')
+    #         file.write('发布时间: '+ReleaseTime+'\n')
+    #         file.write('招聘类型：社会招聘'+'\n')
+    #         file.write('职位描述'+'\n')
+    #         file.write(serviceCondition+'\n')
+    #         file.write('任职要求'+'\n')
+    #         file.write(workConcet+'\n')
+    #         file.write('\n')
+    #     except:
+    #         pass
         
-#     file.close()
+    # file.close()
 
 #5.深信服
 
@@ -212,32 +292,50 @@
 #         json.dump(r.json(),f,ensure_ascii=False)
 
 # 2.
+# import pyexcel
+# a_list_of_dictionaries = []
 # with open('text.txt', 'r', encoding='UTF-8') as f:
 #     data = json.load(f)['data']['listData']
 #     file = open('data.txt', 'w', encoding='UTF-8')
 #     for job in data:
-#         if job['functionName']!='中高端岗位':
-#             continue
+#         # if job['functionName']!='中高端岗位':
+#         #     continue
 #         title = job['title']
-#         departmentName = job['departmentName']
 #         commitment = job['commitment']
-#         workPlaceText = job['workPlaceText']
+#         workPlaceText = str(job.get('workPlaceText',''))+str(job.get('departmentName',''))
 #         description = job['description']
 #         if description:
 #             description = description.replace('<p>','').replace('</p>','\n').replace('<br>','').replace('&nbsp;','').replace('<strong>','')
+#         dict_item = {'id':job['positionId'],
+#                     '岗位分类':job['functionName'],
+#                     '招聘类型（社招/校招）':job['channelName'],
+#                     '学历':job['education'],
+#                     '工作经验':job['minExperience']-job['maxExperience'],
+#                     '公司名称':'深信服',
+#                     '岗位名称':	title,
+#                     '类型（全职/兼职/实习）':commitment,
+#                     '工作地点':workPlaceText,
+#                     '招聘人数':'',
+#                     '薪资':job['minSalary']-job['maxExperience'],
+#                     '工作描述':description
+#                     }
+#         a_list_of_dictionaries.append(dict_item)
+    
+#     pyexcel.save_as(records=a_list_of_dictionaries, dest_file_name="your_file.xlsx")
 
-#         result = title+'\n'
-#         if departmentName:
-#             result += departmentName+'/'
-#         result += commitment+'\n'
-#         result += '工作城市：'+workPlaceText+'\n'
-#         if description:
-#             result += description
-#         result+='\n'
 
-#         file.write(result)
+        # result = title+'\n'
+        # if departmentName:
+        #     result += departmentName+'/'
+        # result += commitment+'\n'
+        # result += '工作城市：'+workPlaceText+'\n'
+        # if description:
+        #     result += description
+        # result+='\n'
 
-#     file.close()
+    #     file.write(result)
+
+    # file.close()
 
 # # 猎聘
 # # https://www.liepin.com/company-jobs/8905176/
@@ -255,7 +353,7 @@
 #         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
 #         'Cookie': '__uuid=1611425987928.23; __s_bid=3315952b39c79092ac6db64f7e543dc049d0; _fecdn_=1; acw_tc=3ccdc15116117109461821646e3f0f62c80143f92040f12e40f79e56f435a6; JSESSIONID=506C910A636E91FA93BD54D7157C592F; fe_se=-1611711706304; __tlog=1611710948063.61%7C00000000%7CR000000075%7C00000000%7C00000000; __session_seq=11; __uv_seq=46',
 #     }
-#     index='https://www.liepin.com/company-jobs/7923384/'
+#     index='https://www.liepin.com/company-jobs/8773292/'
 
 #     def start_requests(self):
 #         yield SeleniumRequest(url=self.index)
@@ -289,8 +387,8 @@
 
 #         yield {'岗位名称':title,'薪资水平':salary,'工作地点':location,'学历要求':education,'工作经验':experience,'工作描述':description}
         
-# 猎聘 vip
-# https://vip.liepin.com/7893220/joblist.shtml
+# # 猎聘 vip
+# # https://vip.liepin.com/7893220/joblist.shtml
 # import scrapy
 # import time
 # from scrapy_selenium import SeleniumRequest
