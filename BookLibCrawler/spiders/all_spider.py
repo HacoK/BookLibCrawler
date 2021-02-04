@@ -18,12 +18,14 @@ class BookLibSpider(scrapy.Spider):
 
     data = pd.read_csv('C:/Users/30438/Desktop/origin.csv')
     isbns = data['isbn'].tolist()
-    count = 69986
+    count = None
     headers = {
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36'
     }
 
     def start_requests(self):
+        with open(r"all.jl",'rU',encoding='UTF-8') as f:
+            self.count = len(f.readlines())
         yield scrapy.Request('http://opac.nlc.cn/F', callback=self.parse)
 
 
