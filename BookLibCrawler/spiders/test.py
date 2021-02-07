@@ -353,7 +353,7 @@
 #         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
 #         'Cookie': '__uuid=1611425987928.23; __s_bid=3315952b39c79092ac6db64f7e543dc049d0; _fecdn_=1; acw_tc=3ccdc15116117109461821646e3f0f62c80143f92040f12e40f79e56f435a6; JSESSIONID=506C910A636E91FA93BD54D7157C592F; fe_se=-1611711706304; __tlog=1611710948063.61%7C00000000%7CR000000075%7C00000000%7C00000000; __session_seq=11; __uv_seq=46',
 #     }
-#     index='https://www.liepin.com/company-jobs/8773292/'
+#     index='https://www.liepin.com/company-jobs/7425323/'
 
 #     def start_requests(self):
 #         yield SeleniumRequest(url=self.index)
